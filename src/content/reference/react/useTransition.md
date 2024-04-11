@@ -29,7 +29,7 @@ function TabContainer() {
   const [isPending, startTransition] = useTransition();
   // ...
 }
-```
+```     
 
 [See more examples below.](#usage)
 
@@ -46,7 +46,7 @@ function TabContainer() {
 
 ---
 
-### `startTransition` function {/*starttransition*/}
+### Sync `startTransition(fn)` function {/*sync-starttransition*/}
 
 The `startTransition` function returned by `useTransition` lets you mark a state update as a Transition.
 
@@ -64,27 +64,76 @@ function TabContainer() {
 }
 ```
 
-#### Parameters {/*starttransition-parameters*/}
+#### Parameters {/*sync-starttransition-parameters*/}
 
 * `scope`: A function that updates some state by calling one or more [`set` functions.](/reference/react/useState#setstate) React immediately calls `scope` with no parameters and marks all state updates scheduled synchronously during the `scope` function call as Transitions. They will be [non-blocking](#marking-a-state-update-as-a-non-blocking-transition) and [will not display unwanted loading indicators.](#preventing-unwanted-loading-indicators)
 
-#### Returns {/*starttransition-returns*/}
+#### Returns {/*sync-starttransition-returns*/}
 
 `startTransition` does not return anything.
 
-#### Caveats {/*starttransition-caveats*/}
+#### Caveats {/*sync-starttransition-caveats*/}
 
 * `useTransition` is a Hook, so it can only be called inside components or custom Hooks. If you need to start a Transition somewhere else (for example, from a data library), call the standalone [`startTransition`](/reference/react/startTransition) instead.
 
 * You can wrap an update into a Transition only if you have access to the `set` function of that state. If you want to start a Transition in response to some prop or a custom Hook value, try [`useDeferredValue`](/reference/react/useDeferredValue) instead.
 
-* The function you pass to `startTransition` must be synchronous. React immediately executes this function, marking all state updates that happen while it executes as Transitions. If you try to perform more state updates later (for example, in a timeout), they won't be marked as Transitions.
+* The function you pass to the synchronous version of `startTransition` must be synchronous. React immediately executes this function, marking all state updates that happen while it executes as Transitions. If you try to perform more state updates later (for example, in a timeout), they won't be marked as Transitions.
 
 * A state update marked as a Transition will be interrupted by other state updates. For example, if you update a chart component inside a Transition, but then start typing into an input while the chart is in the middle of a re-render, React will restart the rendering work on the chart component after handling the input update.
 
 * Transition updates can't be used to control text inputs.
 
 * If there are multiple ongoing Transitions, React currently batches them together. This is a limitation that will likely be removed in a future release.
+
+
+### Async `startTransition(async fn)` function {/*async-starttransition*/}
+
+<Canary>
+
+Async transitions are only available in the React Canary release.
+
+</Canary>
+
+Pass an async function to `startTransition` to create an action. Actions allow you to make async requests and state update within the same Transition:
+
+```js {6,9}
+function TabContainer() {
+  const [isPending, startTransition] = useTransition();
+  const [tab, setTab] = useState('about');
+
+  function updateAction(data, nextTab) {
+    startTransition(async () => {
+      await updateData();
+      setTab(nextTab);
+    });
+  }
+  // ...
+}
+```
+
+#### Parameters {/*async-starttransition-parameters*/}
+
+* `scope`: An async function that makes an async request and then updates some state by calling one or more [`set` functions.](/reference/react/useState#setstate) React immediately sets the `isPending` state to `true` and then awaits all async requests in `scope`. All state updates scheduled during the `scope` function call are marked as a Transition. They will be [non-blocking](#marking-a-state-update-as-a-non-blocking-transition) and [will not display unwanted loading indicators.](#preventing-unwanted-loading-indicators)
+
+#### Returns {/*async-starttransition-returns*/}
+
+`startTransition` does not return anything.
+
+#### Caveats {/*async-starttransition-caveats*/}
+
+* `useTransition` is a Hook, so it can only be called inside components or custom Hooks. If you need to start a Transition somewhere else (for example, from a data library), call the standalone [`startTransition`](/reference/react/startTransition) instead.
+
+* You can wrap an update into a Transition only if you have access to the `set` function of that state. If you want to start a Transition in response to some prop or a custom Hook value, try [`useDeferredValue`](/reference/react/useDeferredValue) instead.
+
+* A state update marked as a Transition will be interrupted by other state updates. For example, if you update a chart component inside a Transition, but then start typing into an input while the chart is in the middle of a re-render, React will restart the rendering work on the chart component after handling the input update.
+
+* TODO: other caveats?
+
+* Transition updates can't be used to control text inputs.
+
+* If there are multiple ongoing Transitions, React currently batches them together. This is a limitation that will likely be removed in a future release.
+
 
 ---
 
@@ -1593,6 +1642,36 @@ root.render(
 }
 ```
 </Sandpack>
+
+---
+
+### Creating an Action with async Transitions {/*creating-an-action-with-async-transitions*/}
+
+<Canary>
+
+Async transitions are only available in the React Canary release.
+
+</Canary>
+
+Call `startTransition` with an async function to create an Action:
+
+```js {9,12}
+import { useState, useTransition } from 'react';
+import {updateData} from './api';
+
+function TabContainer() {
+  const [isPending, startTransition] = useTransition();
+  const [tab, setTab] = useState('about');
+
+  function updateAction(data, nextTab) {
+    startTransition(async () => {
+      await updateData(data);
+      setTab(nextTab);
+    });
+  }
+  // ...
+}
+```
 
 ---
 
