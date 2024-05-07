@@ -2286,7 +2286,7 @@ export default function Total({ clientQuantity, savedQuantity, isPending }) {
             ? "🌀 Updating..."
             : `${intl.format(savedQuantity * 9999)}`}
         </div>
-        <div class="error">
+        <div className="error">
           {!isPending &&
             clientQuantity !== savedQuantity &&
             `Wrong total, expected: ${intl.format(clientQuantity * 9999)}`}
